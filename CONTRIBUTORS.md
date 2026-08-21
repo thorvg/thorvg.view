@@ -6,9 +6,10 @@ For definitions and responsibilities of each project role, see [Roles & Responsi
 - Hermet Park @hermet
 
 ## Maintainer
-- Jinny You @tinyjin
+- SoonGeon Noh @Nor-s
 
 ## Core Contributors
+- Jinny You @tinyjin
 - Shinwoo Kim @kimcinoo
 - Michal Maciola @mmaciola
 - YouJin Lee @ol-of
@@ -16,4 +17,3 @@ For definitions and responsibilities of each project role, see [Roles & Responsi
 ## Contributors
 - Junsu Choi @JSUYA
 - KunYoung Park @kunyoungparkk
-- SoonGeon Noh @Nor-s
