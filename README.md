@@ -12,7 +12,7 @@ ThorVG View is a verification tool for the ThorVG Engine. It facilitates immedia
 </br>
 </br>
 <p align="center">
-  <img width="700" height="auto" src="https://github.com/thorvg/thorvg/assets/3711518/edadcc5e-3bbf-489d-a9a1-9570079c7d55"/>
+  <img width="700" height="auto" src="https://github.com/thorvg/thorvg.site/blob/main/readme/example_thorvgview.gif"/>
 </p>
 </br>
 
