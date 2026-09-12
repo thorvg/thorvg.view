@@ -9,9 +9,9 @@ For definitions and responsibilities of each project role, see [Roles & Responsi
 - SoonGeon Noh @Nor-s
 
 ## Core Contributors
-- Jinny You @tinyjin
 - Shinwoo Kim @kimcinoo
 - Michal Maciola @mmaciola
+- Jinny You @tinyjin
 - YouJin Lee @ol-of
 
 ## Contributors
