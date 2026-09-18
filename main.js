@@ -69,6 +69,7 @@ function checkRendererSupport() {
 //initialization
 window.onload = () => {
     initialize();
+    updateVersionInfo();
     checkRendererSupport();
     filesList = new Array();
     loadFromWindowURL();
@@ -457,24 +458,27 @@ function onStatsMode(event) {
     }
 }
 
+function updateVersionInfo() {
+    const version = (player || document.createElement('lottie-player')).getVersion().THORVG_VERSION;
+    const rendererName = { sw: 'Software', gl: 'WebGL', wg: 'WebGPU' }[renderer];
+    document.getElementById('version').textContent = `ThorVG v${version} · ${rendererName}`;
+}
+
 function onRendererMode(event) {
-  const versionEl = document.getElementById('version');
   switch (event.target.value) {
     case 'sw':
       renderer = 'sw';
-      versionEl.textContent = versionEl.textContent.split('·')[0] + '· Software';
       break;
     case 'wg':
       renderer = 'wg';
-      versionEl.textContent = versionEl.textContent.split('·')[0] + '· WebGPU';
       break;
     case 'gl':
       renderer = 'gl';
-      versionEl.textContent = versionEl.textContent.split('·')[0] + '· WebGL';
       break;
     default:
       return;
   }
+  updateVersionInfo();
   
   if (player) {
     player.destroy();
