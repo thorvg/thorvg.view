@@ -375,10 +375,17 @@ h4.ctrl-description {
     font-weight: 600;
     height: 1.75rem;
     position: relative;
+    border: 0;
+    background: transparent;
 }
 
-.progress-button:hover {
+.progress-button:hover:not(:disabled) {
     background: rgb(48, 48, 48);
+}
+
+.progress-button:disabled {
+    cursor: default;
+    opacity: 0.5;
 }
 
 .progress-button svg {
