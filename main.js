@@ -195,9 +195,12 @@ function openFileBrowse() {
 
 const allowedExtensionList = ['svg', 'json', 'png', 'jpg', 'jpeg', 'lot', 'webp'];
 
+function isLottieType(fileExtension) {
+    return fileExtension === 'json' || fileExtension === 'lot';
+}
+
 function allowedFileExtension(filename) {
-    filetype = filename.split('.').pop().toLowerCase();
-    return allowedExtensionList.includes(filetype);
+    return allowedExtensionList.includes(filename.split('.').pop().toLowerCase());
 }
 
 function fileDropHighlight(event) {
@@ -292,15 +295,26 @@ function initPlayer() {
     document.querySelector('#image-area').appendChild(player);
 }
 
+// lottie-player keeps the previous lottie's frame state when a static image is loaded.
+// `player` may be recreated while load() awaits, so keep a local reference.
+async function loadIntoPlayer(data, fileExtension) {
+    const target = player;
+    target.currentFrame = 0;
+    await target.load(data, fileExtension);
+    if (!isLottieType(fileExtension)) target.totalFrame = 0;
+}
+
 function loadData(data, fileExtension, frame = null) {
     filedata = data;
+    filetype = fileExtension;
 
     initPlayer();
 
     requestAnimationFrame(async () => {
         player.style.width = `${size}px`;
         player.style.height = `${size}px`;
-        await player.load(data, fileExtension);
+        await loadIntoPlayer(data, fileExtension);
+        // restore the paused frame after a renderer switch
         if (frame !== null) await player.seek(frame);
         createTabs();
         showImageCanvas();
@@ -315,7 +329,7 @@ function loadData(data, fileExtension, frame = null) {
 function loadFile(file) {
     filename = file.name;
     const fileExtension = filename.split('.').pop().toLowerCase();
-    const isLottie = fileExtension.endsWith('json') || fileExtension.endsWith('lot');
+    const isLottie = isLottieType(fileExtension);
     var reader = new FileReader();
 
     reader.onload = async function(e) {
@@ -331,11 +345,14 @@ function loadFile(file) {
 }
 
 async function loadUrl(url) {
+    filename = url.split('/').pop();
     const fileExtension = url.split('.').pop().toLowerCase();
+    filedata = url;
+    filetype = fileExtension;
 
     initPlayer();
 
-    await player.load(url, fileExtension);
+    await loadIntoPlayer(url, fileExtension);
 
     showImageCanvas();
     enableZoomContainer();
@@ -484,7 +501,7 @@ function onRendererMode(event) {
       return;
   }
   updateVersionInfo();
-  var frame = player && player.currentState !== 'playing' ? player.currentFrame : null;
+  var frame = player && isLottieType(filetype) && player.currentState !== 'playing' ? player.currentFrame : null;
   
   if (player) {
     player.destroy();
@@ -613,7 +630,7 @@ function createTitleLine(title, text) {
     titleLine.innerHTML = title;
     var textLine = document.createElement("span");
     textLine.setAttribute('class', 'line-content');
-    textLine.innerHTML = text;
+    textLine.textContent = text;
     var line = document.createElement("div");
     line.setAttribute('class', 'line');
     line.appendChild(titleLine);
@@ -693,7 +710,7 @@ function addByUrl() {
 
 function refreshProgressValue() {
     var slider = document.getElementById("progress-slider");
-    slider.value = (player.currentFrame / player.totalFrame) * 100;
+    slider.value = player.totalFrame > 0 ? (player.currentFrame / player.totalFrame) * 100 : 0;
     var value = document.getElementById("progress-value");
     if (document.activeElement !== value) value.textContent = Math.round(player.currentFrame);
     document.getElementById("progress-total").textContent = Math.floor(player.totalFrame);
