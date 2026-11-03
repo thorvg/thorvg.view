@@ -148,7 +148,7 @@ function initialize() {
     document.getElementById("progress-value").addEventListener("focus", onProgressValue, false);
     document.getElementById("progress-value").addEventListener("blur", refreshProgressValue, false);
     document.getElementById("progress-value").addEventListener("keydown", onProgressValue, false);
-    document.getElementById("progress-play").addEventListener("click", onProgressPlay, false);
+    document.getElementById("progress-replay").addEventListener("click", onProgressReplay, false);
     document.getElementById("progress-pause").addEventListener("click", onProgressPause, false);
     document.getElementById("progress-stop").addEventListener("click", onProgressStop, false);
 
@@ -253,6 +253,7 @@ async function handleExportGifClick() {
 
 function frameCallback() {
     refreshProgressValue();
+    refreshProgressButtons();
 }
 
 function loadCallback() {
@@ -267,6 +268,9 @@ function attachAllEventListeners() {
     player.addEventListener('frame', frameCallback);
     player.addEventListener('load', loadCallback);
     player.addEventListener('error', errorCallback);
+    player.addEventListener('pause', refreshProgressButtons);
+    player.addEventListener('stop', refreshProgressButtons);
+    player.addEventListener('freeze', refreshProgressButtons);
 }
 
 function initPlayer() {
@@ -383,6 +387,7 @@ function enableProgressContainer(enable = true) {
     var value = document.getElementById("progress-value");
     value.contentEditable = !slider.disabled;
     refreshProgressValue();
+    refreshProgressButtons();
 }
 
 //quality dropdown
@@ -532,12 +537,14 @@ function onZoomValue(event) {
 function onProgressSlider(event) {
     player.seek((event.target.value / 100) * player.totalFrame);
     refreshProgressValue();
+    refreshProgressButtons();
 }
 
 function onProgressValue(event) {
     if (event.type === 'focus') {
         if (document.getElementById("progress-slider").disabled) return;
         player.pause();
+        refreshProgressButtons();
         event.target.textContent = Number(player.currentFrame.toFixed(6));
     } else if (event.key === 'Enter') {
         var frame = Number(event.target.textContent);
@@ -549,12 +556,16 @@ function onProgressValue(event) {
     }
 }
 
-function onProgressPlay() {
+function onProgressReplay() {
+    onProgressStop();
     player.play();
+    refreshProgressButtons();
 }
 
 function onProgressPause() {
-    player.pause();
+    if (player.currentState !== 'playing') player.play();
+    else player.pause();
+    refreshProgressButtons();
 }
 
 function onProgressStop() {
@@ -565,6 +576,7 @@ function onProgressStop() {
     slider.value = 0;
 
     refreshProgressValue();
+    refreshProgressButtons();
 }
 
 function onAddFileUrl() {
@@ -689,6 +701,20 @@ function addByUrl() {
     }
     
     loadUrl(url);
+}
+
+function refreshProgressButtons() {
+    var button = document.getElementById("progress-pause");
+    var resume = player.currentState !== 'playing';
+    var label = resume ? "Resume" : "Pause";
+    var disabled = document.getElementById("progress-slider").disabled || (player.fileType !== 'json' && player.fileType !== 'lot');
+    if (button.title === label && button.disabled === disabled) return;
+    button.disabled = disabled;
+    document.getElementById("progress-replay").disabled = disabled;
+    button.title = label;
+    button.setAttribute("aria-label", label);
+    button.querySelector(".pause-icon").classList.toggle("hidden", resume);
+    button.querySelector(".resume-icon").classList.toggle("hidden", !resume);
 }
 
 function refreshProgressValue() {
