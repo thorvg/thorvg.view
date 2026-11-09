@@ -354,31 +354,7 @@ h4.ctrl-description {
 }
 
 .progress-button-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(25%, 1fr));
-    background: var(--ctrl-surface-color);
-    border-radius: 0.5rem;
-    padding: 0.25rem;
-    align-items: center;
     margin-top: 0.625rem;
-}
-
-.progress-button {
-    display: flex;
-    align-items: center;
-    -webkit-box-pack: center;
-    justify-content: center;
-    cursor: pointer;
-    border-radius: 0.5rem;
-    color: var(--ctrl-primary-color);
-    font-size: 0.875rem;
-    font-weight: 600;
-    height: 1.75rem;
-    position: relative;
-}
-
-.progress-button:hover {
-    background: rgb(48, 48, 48);
 }
 
 .progress-button svg {
