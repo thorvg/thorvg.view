@@ -27,6 +27,7 @@ var filename;
 var filedata;
 var size = 800;
 var renderer = 'gl';
+var perfMonitor;
 
 //console output
 const ConsoleLogTypes = { None : '', Inner : 'console-type-inner', Error : 'console-type-error', Warning : 'console-type-warning' };
@@ -256,6 +257,7 @@ function frameCallback() {
 
 function loadCallback() {
     consoleLog("Loading file " + filename, ConsoleLogTypes.Inner);
+    if (perfMonitor) resetPerfMonitor();
 }
 
 function errorCallback() {
@@ -408,62 +410,44 @@ function onDarkMode(event) {
 }
 
 function onStatsMode(event) {
-    if (event.target.checked) {
-        // Create and inject script element for stats.js
-        const statsScript = document.createElement('script');
-        statsScript.src = 'https://mrdoob.github.io/stats.js/build/stats.min.js';
-        statsScript.onload = () => {
-            // Initialize FPS panel
-            const statsFPS = new Stats();
-            statsFPS.showPanel(0);
-            statsFPS.dom.classList.add("stats");
-            statsFPS.dom.style.cssText = "position:fixed;top:16px;left:20px;cursor:pointer;opacity:0.9;z-index:200";
-            document.body.appendChild(statsFPS.dom);
-
-            // Initialize MS panel
-            const statsMS = new Stats();
-            statsMS.showPanel(1);
-            statsMS.dom.classList.add("stats");
-            statsMS.dom.style.cssText = "position:fixed;top:16px;left:100px;cursor:pointer;opacity:0.9;z-index:200";
-            document.body.appendChild(statsMS.dom);
-
-            // Initialize MB panel if supported
-            let statsMB;
-            if (self.performance && self.performance.memory) {
-                statsMB = new Stats();
-                statsMB.showPanel(2);
-                statsMB.dom.classList.add("stats");
-                statsMB.dom.style.cssText = "position:fixed;top:16px;left:180px;cursor:pointer;opacity:0.9;z-index:200";
-                document.body.appendChild(statsMB.dom);
-            }
-
-            // Start animation loop
-            function animate() {
-                statsFPS.begin();
-                statsMS.begin();
-                if (statsMB) statsMB.begin();
-
-                statsFPS.end();
-                statsMS.end();
-                if (statsMB) statsMB.end();
-
-                requestAnimationFrame(animate);
-            }
-
-            requestAnimationFrame(animate);
-        };
-        document.head.appendChild(statsScript);
+    if (!event.target.checked) {
+        if (perfMonitor) perfMonitor.dispose();
+        perfMonitor = null;
         return;
     }
 
-    // Remove stats.js panels and script when benchmark mode is disabled
-    const statsPanels = document.querySelectorAll('div[class="stats"]');
-    statsPanels.forEach(panel => panel.remove());
+    if (perfMonitor || !window.PerfMonitor) return;
+    resetPerfMonitor();
+}
 
-    const statsScript = document.querySelector('script[src*="stats.js"]');
-    if (statsScript) {
-        statsScript.remove();
-    }
+function resetPerfMonitor() {
+    if (perfMonitor) perfMonitor.dispose();
+    perfMonitor = new window.PerfMonitor();
+    perfMonitor.resetPeak();
+    const style = document.createElement('style');
+    style.textContent = `
+        .root {
+            top: 16px;
+            left: 20px;
+            bottom: auto;
+            z-index: 200;
+            max-width: calc(100vw - 40px);
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-start;
+            pointer-events: none;
+        }
+        .box { pointer-events: auto; }
+        .details { margin: 8px 0 0; }
+        .arrow { transform: translateY(-50%) rotate(180deg); }
+        @media (max-width: 480px) {
+            .bar { max-width: calc(100vw - 100px); }
+            .cell { min-width: 0; }
+            .metric > div { flex-wrap: wrap; }
+        }
+    `;
+    perfMonitor.dom.shadowRoot.appendChild(style);
+    document.body.appendChild(perfMonitor.dom);
 }
 
 function updateVersionInfo() {
@@ -496,6 +480,7 @@ function onRendererMode(event) {
   }
 
   if (!filedata) {
+    if (perfMonitor) resetPerfMonitor();
     return;
   }
   loadData(filedata, filetype, frame);
