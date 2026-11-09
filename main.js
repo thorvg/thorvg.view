@@ -148,8 +148,7 @@ function initialize() {
     document.getElementById("progress-value").addEventListener("focus", onProgressValue, false);
     document.getElementById("progress-value").addEventListener("blur", refreshProgressValue, false);
     document.getElementById("progress-value").addEventListener("keydown", onProgressValue, false);
-    document.getElementById("progress-play").addEventListener("click", onProgressPlay, false);
-    document.getElementById("progress-pause").addEventListener("click", onProgressPause, false);
+    document.getElementById("progress-play-pause").addEventListener("click", onProgressPlayPause, false);
     document.getElementById("progress-stop").addEventListener("click", onProgressStop, false);
 
     document.getElementById("add-file-local").addEventListener("click", openFileBrowse, false);
@@ -267,6 +266,9 @@ function attachAllEventListeners() {
     player.addEventListener('frame', frameCallback);
     player.addEventListener('load', loadCallback);
     player.addEventListener('error', errorCallback);
+    player.addEventListener('pause', refreshProgressButtons);
+    player.addEventListener('stop', refreshProgressButtons);
+    player.addEventListener('freeze', refreshProgressButtons);
 }
 
 function initPlayer() {
@@ -383,6 +385,7 @@ function enableProgressContainer(enable = true) {
     var value = document.getElementById("progress-value");
     value.contentEditable = !slider.disabled;
     refreshProgressValue();
+    refreshProgressButtons();
 }
 
 //quality dropdown
@@ -549,15 +552,14 @@ function onProgressValue(event) {
     }
 }
 
-function onProgressPlay() {
+function onProgressPlayPause() {
+    if (!player) return;
+    if (player.currentState === 'playing') return player.pause();
     player.play();
 }
 
-function onProgressPause() {
-    player.pause();
-}
-
 function onProgressStop() {
+    if (!player) return;
     player.stop();
 
     //reset progress slider
@@ -689,6 +691,18 @@ function addByUrl() {
     }
     
     loadUrl(url);
+}
+
+function refreshProgressButtons() {
+    var button = document.getElementById("progress-play-pause");
+    var playing = player.currentState === 'playing';
+    if (!playing) player.addEventListener('frame', refreshProgressButtons, { once: true });
+    var label = playing ? "Pause" : "Play";
+    if (button.getAttribute("aria-label") !== label) button.setAttribute("aria-label", label);
+    var pauseIcon = button.querySelector(".pause-icon");
+    if (pauseIcon.classList.contains("hidden") === !playing) return;
+    pauseIcon.classList.toggle("hidden", !playing);
+    button.querySelector(".play-icon").classList.toggle("hidden", playing);
 }
 
 function refreshProgressValue() {
