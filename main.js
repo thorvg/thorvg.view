@@ -733,7 +733,8 @@ function refreshProgressValue() {
 function refreshZoomValue() {
     var value = document.getElementById("zoom-value");
 
-    var canvas = player.querySelector('canvas');
+    const canvas = player?.shadowRoot?.querySelector('canvas');
+    if (!canvas) return;
     const width = Math.round(canvas.width);
     const height = Math.round(canvas.height);
     value.innerHTML = width + " x " + height;
